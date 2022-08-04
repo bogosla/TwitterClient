@@ -33,15 +33,26 @@ public class TimelineActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         biding = DataBindingUtil.setContentView(this, R.layout.activity_timeline);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
 
         tweets = new ArrayList<>();
         RecyclerView rvTweets = biding.rvTweets;
 
         adapter = new TweetAdapter(this, tweets);
+        EndlessRecyclerViewScrollListener scrollListener = new EndlessRecyclerViewScrollListener(linearLayoutManager) {
+            @Override
+            public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
+                // Triggered only when new data needs to be appended to the list
+                // Add whatever code is needed to append new items to the bottom of the list
+                Log.i(TAG, "OnScroll OK");
+            }
+        };
+
         rvTweets.addItemDecoration(new ItemDecorationTweet());
-        rvTweets.setLayoutManager(new LinearLayoutManager(this));
+        rvTweets.setLayoutManager(linearLayoutManager);
         rvTweets.setAdapter(adapter);
 
+        rvTweets.addOnScrollListener(scrollListener);
         client = RestApplication.getRestClient(this);
 
         populateTimeLine();

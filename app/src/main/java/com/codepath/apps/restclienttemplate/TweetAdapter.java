@@ -51,7 +51,7 @@ public class TweetAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
             Glide.with(context).load(tweet.user.profileUrl).into(itemRow.imgProfile);
             itemRow.tvName.setText(tweet.user.name);
             itemRow.tvUsername.setText(String.format("@%s", tweet.user.username));
-            itemRow.tvCreatedAt.setText(tweet.createdAt);
+            itemRow.tvCreatedAt.setText(tweet.getFormattedCreatedAt());
             itemRow.tvBody.setText(tweet.body);
             itemRow.executePendingBindings();
         }
