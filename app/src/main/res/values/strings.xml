@@ -5,5 +5,6 @@
     <string name="login_label">Log in</string>
     <string name="intent_scheme">boauth</string>
     <string name="intent_host">bcprest</string>
+    <string name="errorInternet">It seems you don\'t have internet connection !</string>
 
 </resources>
