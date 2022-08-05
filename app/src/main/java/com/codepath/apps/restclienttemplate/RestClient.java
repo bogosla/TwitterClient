@@ -33,10 +33,11 @@ public class RestClient extends OAuthBaseClient {
 
 	}
 	
-	public void getHomeTimeLine(JsonHttpResponseHandler handler) {
+	public void getHomeTimeLine(int page, JsonHttpResponseHandler handler) {
 		String apiUrl = getApiUrl("statuses/home_timeline.json");
 		RequestParams params = new RequestParams();
-		// params.put("format", "json");
+		params.put("count", "20");
+		params.put("page", String.valueOf(page));
 		client.get(apiUrl, params, handler);
 	}
 
