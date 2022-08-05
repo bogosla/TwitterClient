@@ -22,6 +22,19 @@ public class TweetAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         this.context = context;
         this.tweets = tweets;
     }
+
+    // Clear all elements
+    public void clear() {
+        tweets.clear();
+        notifyDataSetChanged();
+    }
+
+    // Add a list of items
+    public void addAll(List<Tweet> items) {
+        tweets.addAll(items);
+        notifyDataSetChanged();
+    }
+
     @NonNull
     @Override
     public TweetHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
