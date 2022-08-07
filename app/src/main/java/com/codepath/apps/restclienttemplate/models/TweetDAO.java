@@ -13,8 +13,12 @@ public interface TweetDAO {
     @Query("SELECT * FROM Tweet WHERE id = :tweetId")
     Tweet byTweetId(Long tweetId);
 
-    @Query("SELECT * FROM Tweet ORDER BY createdAt")
-    List<Tweet> getRecentTweets();
+    @Query("DELETE FROM Tweet")
+    void deleteAll();
+
+
+    @Query("SELECT * FROM Tweet")
+    List<Tweet> getTweets();
 
     // Replace strategy is needed to ensure an update on the table row.  Otherwise the insertion will
     // fail.
