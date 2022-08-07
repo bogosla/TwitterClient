@@ -1,36 +1,19 @@
 package com.codepath.apps.restclienttemplate;
 
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.View;
+import android.widget.Toast;
 
-import com.codepath.apps.restclienttemplate.models.SampleModel;
-import com.codepath.apps.restclienttemplate.models.SampleModelDao;
 import com.codepath.oauth.OAuthLoginActionBarActivity;
 
 public class LoginActivity extends OAuthLoginActionBarActivity<RestClient> {
 
-	SampleModelDao sampleModelDao;
-	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_login);
-
-//		final SampleModel sampleModel = new SampleModel();
-//		sampleModel.setName("CodePath");
-//
-//		sampleModelDao = ((RestApplication) getApplicationContext()).getMyDatabase().sampleModelDao();
-//
-//		AsyncTask.execute(new Runnable() {
-//			@Override
-//			public void run() {
-//				sampleModelDao.insertModel(sampleModel);
-//			}
-//		});
 	}
 
 
@@ -54,6 +37,7 @@ public class LoginActivity extends OAuthLoginActionBarActivity<RestClient> {
 	@Override
 	public void onLoginFailure(Exception e) {
 		e.printStackTrace();
+		Toast.makeText(LoginActivity.this, "Login failed!!!", Toast.LENGTH_LONG).show();
 	}
 
 	// Click handler method for the button used to start OAuth flow
