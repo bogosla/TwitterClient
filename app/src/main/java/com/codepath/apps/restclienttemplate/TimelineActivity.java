@@ -1,20 +1,20 @@
 package com.codepath.apps.restclienttemplate;
 
-
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import android.annotation.SuppressLint;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.codepath.apps.restclienttemplate.databinding.ActivityTimelineBinding;
 import com.codepath.apps.restclienttemplate.models.Tweet;
-import com.codepath.apps.restclienttemplate.models.User;
+import com.codepath.apps.restclienttemplate.models.TweetDAO;
 import com.codepath.asynchttpclient.callback.JsonHttpResponseHandler;
 
 import org.json.JSONException;
@@ -47,12 +47,9 @@ public class TimelineActivity extends AppCompatActivity {
         adapter = new TweetAdapter(this, tweets);
 
         // Refresh listener
-        refreshContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                populateTimeLine(1);
-                refreshContainer.setRefreshing(false);
-            }
+        refreshContainer.setOnRefreshListener(() -> {
+            populateTimeLine(1);
+            refreshContainer.setRefreshing(false);
         });
 
         // Scroll listener
@@ -82,6 +79,8 @@ public class TimelineActivity extends AppCompatActivity {
         rvTweets.setAdapter(adapter); // Set adapter
 
         rvTweets.addOnScrollListener(scrollListener);
+
+
         client = RestApplication.getRestClient(this);
 
         populateTimeLine(1);
@@ -92,18 +91,58 @@ public class TimelineActivity extends AppCompatActivity {
         client.getHomeTimeLine(page, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Headers headers, JSON json) {
-                Log.i(TAG, "Requests TIMELINE Success");
                 try {
                     adapter.clear();
-                    adapter.addAll(Tweet.fromJsonArray(json.jsonArray));
+                    List<Tweet> tweetList = Tweet.fromJsonArray(json.jsonArray);
+                    adapter.addAll(tweetList);
+                    saveTweetsToDB(tweetList.toArray(new Tweet[0]));
                 } catch (JSONException e) { e.printStackTrace(); }
             }
 
             @Override
             public void onFailure(int statusCode, Headers headers, String response, Throwable throwable) {
-                Log.i(TAG, "Requests Failed " + response.toString());
-                Toast.makeText(TimelineActivity.this, "Maybe no internet connection!!", Toast.LENGTH_LONG).show();
+                // Toast.makeText(TimelineActivity.this, "Maybe no internet connection!!", Toast.LENGTH_LONG).show();
+                getTweetsFromDb();
             }
         });
     }
+
+    public void saveTweetsToDB(Tweet... tweetsToSave) {
+        @SuppressLint("StaticFieldLeak") AsyncTask<Tweet, Void, Void> task = new AsyncTask<Tweet, Void, Void>() {
+            @Override
+            protected Void doInBackground(Tweet... ts) {
+                TweetDAO tweetDAO = ((RestApplication) getApplicationContext()).getMyDatabase().getTweetDAO();
+                tweetDAO.deleteAll();
+                tweetDAO.insertTweet(ts);
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void unused) {
+                Toast.makeText(TimelineActivity.this, "Save tweets to DB !!", Toast.LENGTH_LONG).show();
+            }
+        };
+        task.execute(tweetsToSave);
+    }
+
+    public void getTweetsFromDb() {
+        @SuppressLint("StaticFieldLeak") AsyncTask<Void, Void, List<Tweet>> task = new AsyncTask<Void, Void, List<Tweet>>() {
+
+            @Override
+            protected List<Tweet> doInBackground(Void... voids) {
+                TweetDAO tweetDAO = ((RestApplication) getApplicationContext()).getMyDatabase().getTweetDAO();
+                return tweetDAO.getTweets();
+            }
+
+            @Override
+            protected void onPostExecute(List<Tweet> ts) {
+                Log.i(TAG, "FROM DB " + ts.toString());
+                adapter.clear();
+                adapter.addAll(ts);
+                Toast.makeText(TimelineActivity.this, "Retrieve tweets from DB !!", Toast.LENGTH_LONG).show();
+            }
+        };
+        task.execute();
+    }
+
 }
