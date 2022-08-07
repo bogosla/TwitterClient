@@ -2,14 +2,17 @@ package com.codepath.apps.restclienttemplate;
 
 import androidx.room.Database;
 import androidx.room.RoomDatabase;
+import androidx.room.TypeConverters;
 
-import com.codepath.apps.restclienttemplate.models.SampleModel;
-import com.codepath.apps.restclienttemplate.models.SampleModelDao;
+import com.codepath.apps.restclienttemplate.models.Converter;
+import com.codepath.apps.restclienttemplate.models.Tweet;
+import com.codepath.apps.restclienttemplate.models.TweetDAO;
 
-@Database(entities={SampleModel.class}, version=1)
+@Database(entities={Tweet.class}, version=2)
+@TypeConverters(Converter.class)
 public abstract class MyDatabase extends RoomDatabase {
-    public abstract SampleModelDao sampleModelDao();
+    public abstract TweetDAO getTweetDAO();
 
     // Database name to be used
-    public static final String NAME = "MyDataBase";
+    public static final String NAME = "TweetDB";
 }

@@ -1,6 +1,7 @@
 package com.codepath.apps.restclienttemplate;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -10,6 +11,7 @@ import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.CircleCrop;
 import com.bumptech.glide.load.resource.bitmap.FitCenter;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.codepath.apps.restclienttemplate.databinding.ItemTweetBinding;
@@ -65,7 +67,7 @@ public class TweetAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         }
         public void bind(Tweet tweet) {
 
-            Glide.with(context).load(tweet.user.profileUrl).transform(new FitCenter(), new RoundedCorners(48)).into(itemRow.imgProfile);
+            Glide.with(context).load(tweet.user.profileUrl).transform(new FitCenter(), new CircleCrop()).into(itemRow.imgProfile);
             itemRow.tvName.setText(tweet.user.name);
             itemRow.tvUsername.setText(String.format("@%s", tweet.user.username));
             itemRow.tvCreatedAt.setText(tweet.getFormattedCreatedAt());
@@ -74,12 +76,13 @@ public class TweetAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
             media.setVisibility(ImageView.GONE);
 
             if (!tweet.medias.isEmpty()) {
-                List<Tweet.Media> ms = tweet.medias;
+                List<String> ms = tweet.medias;
+                Log.i("ADAPTER", ms.toString());
 
-                if (ms.get(0).type == Tweet.MediaType.photo) {
-                    media.setVisibility(ImageView.VISIBLE);
-                    Glide.with(context).load(tweet.medias.get(0).url).transform(new FitCenter(), new RoundedCorners(12)).into(media);
-                }
+                //if (ms.get(0).type == "photo") {
+                  //  media.setVisibility(ImageView.VISIBLE);
+                    //Glide.with(context).load(tweet.medias.get(0).url).transform(new FitCenter(), new RoundedCorners(12)).into(media);
+                //}
             }
             itemRow.executePendingBindings();
         }

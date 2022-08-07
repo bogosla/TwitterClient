@@ -5,6 +5,7 @@ import androidx.room.ColumnInfo;
 import androidx.room.Embedded;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
+import androidx.room.TypeConverters;
 
 import com.codepath.apps.restclienttemplate.TimeFormatter;
 
@@ -31,19 +32,9 @@ public class Tweet {
     @Embedded
     public User user;
 
-    public List<Media> medias = new ArrayList<>();
-
-    public static class Media {
-        public String url;
-        public MediaType type;
-    }
-
-    public enum MediaType {
-        zero, // represent no photo
-        photo,
-        video,
-        animated_gif
-    }
+    @TypeConverters(Converter.class)
+    @ColumnInfo
+    public List<String> medias = new ArrayList<>();
 
     public Tweet(User user, String body, String createdAt) {
         this.user = user;
@@ -63,25 +54,12 @@ public class Tweet {
         );
         // Takes media for this tweet
         try {
-            JSONArray entities_media = json.getJSONObject("entities_extended").getJSONArray("media");
+            JSONArray entities_media = json.getJSONObject("extended_entities").getJSONArray("media");
             for (int i = 0; i < entities_media.length(); i++) {
-                Media m = new Media();
-                m.url = entities_media.getJSONObject(i).getString("media_url_https");
-                String t = entities_media.getJSONObject(0).getString("type");
-                switch (t) {
-                    case "photo":
-                        m.type = MediaType.photo;
-                        break;
-                    case "video":
-                        m.type = MediaType.video;
-                        break;
-                    case "animated_gif":
-                        m.type = MediaType.animated_gif;
-                        break;
-                    default:
-                        m.type = MediaType.zero;
-                        break;
-                }
+                String m = "";
+                m += entities_media.getJSONObject(i).getString("media_url_https");
+                m += " - ";
+                m += entities_media.getJSONObject(0).getString("type");
                 tweet.medias.add(m);
             }
 
