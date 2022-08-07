@@ -3,20 +3,23 @@ package com.codepath.apps.restclienttemplate;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.FitCenter;
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.codepath.apps.restclienttemplate.databinding.ItemTweetBinding;
 import com.codepath.apps.restclienttemplate.models.Tweet;
 
 import java.util.List;
 
 public class TweetAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
-    Context context;
-    List tweets;
+    private final Context context;
+    private final List tweets;
 
     TweetAdapter(Context context, List<Tweet> tweets) {
         this.context = context;
@@ -61,11 +64,23 @@ public class TweetAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
             this.itemRow = itemRow;
         }
         public void bind(Tweet tweet) {
-            Glide.with(context).load(tweet.user.profileUrl).into(itemRow.imgProfile);
+
+            Glide.with(context).load(tweet.user.profileUrl).transform(new FitCenter(), new RoundedCorners(48)).into(itemRow.imgProfile);
             itemRow.tvName.setText(tweet.user.name);
             itemRow.tvUsername.setText(String.format("@%s", tweet.user.username));
             itemRow.tvCreatedAt.setText(tweet.getFormattedCreatedAt());
             itemRow.tvBody.setText(tweet.body);
+            ImageView media = itemRow.imgEmbedded;
+            media.setVisibility(ImageView.GONE);
+
+            if (!tweet.medias.isEmpty()) {
+                List<Tweet.Media> ms = tweet.medias;
+
+                if (ms.get(0).type == Tweet.MediaType.photo) {
+                    media.setVisibility(ImageView.VISIBLE);
+                    Glide.with(context).load(tweet.medias.get(0).url).transform(new FitCenter(), new RoundedCorners(12)).into(media);
+                }
+            }
             itemRow.executePendingBindings();
         }
     }

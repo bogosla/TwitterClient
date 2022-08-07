@@ -14,33 +14,22 @@ public class User {
     public String username;
 
     @ColumnInfo
-    public Long twitter_id;
+    public Long userId;
 
     public String profileUrl;
 
-    public User(String name, String username, Long id, String profileUrl) {
-        this.name = name;
-        this.username = username;
-        this.twitter_id = id;
-        this.profileUrl = profileUrl;
-    }
+    public User() {}
 
     public static User fromJson(JSONObject json) throws JSONException {
-        return new User(
-                json.getString("name"),
-                json.getString("screen_name"),
-                json.getLong("id"),
-                json.getString("profile_image_url_https")
-        );
+        User user = new User();
+        user.name = json.getString("name");
+        user.username =  json.getString("screen_name");
+        user.userId = json.getLong("id");
+        user.profileUrl =  json.getString("profile_image_url_https");
+        return user;
     }
 
     @NonNull
     @Override
-    public String toString() {
-        return "User{" +
-                "name='" + name + '\'' +
-                ", username='" + username + '\'' +
-                ", profileUrl='" + profileUrl + '\'' +
-                '}';
-    }
+    public String toString() { return String.format("User(%s){name: %s}", userId, name); }
 }
