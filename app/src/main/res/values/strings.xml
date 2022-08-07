@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">BogosTwitter</string>
     <string name="login_label">Log in</string>
+    <string name="logout_label">Log out</string>
+    <string name="compose_label">Compose</string>
     <string name="intent_scheme">boauth</string>
     <string name="intent_host">bcprest</string>
     <string name="errorInternet">It seems you don\'t have internet connection !</string>

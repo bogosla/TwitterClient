@@ -5,6 +5,12 @@
 
     <!-- Application theme. -->
     <style name="AppTheme" parent="AppBaseTheme">
+        <item name="fontFamily">@font/custom</item>
+
+    </style>
+
+    <style name="Toolbar" parent="Theme.MaterialComponents.Light">
+        <item name="android:textColorPrimary">@color/white</item>
     </style>
 
 </resources>
