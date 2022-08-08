@@ -14,6 +14,7 @@ public class LoginActivity extends OAuthLoginActionBarActivity<RestClient> {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_login);
+		setSupportActionBar(findViewById(R.id.toolbar0));
 	}
 
 

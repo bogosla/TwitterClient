@@ -1,10 +1,17 @@
 package com.codepath.apps.restclienttemplate;
 
 import android.content.Context;
+import android.graphics.SurfaceTexture;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.TextureView;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.MediaController;
+import android.widget.VideoView;
 
 import androidx.annotation.NonNull;
 import androidx.databinding.DataBindingUtil;
@@ -17,9 +24,11 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.codepath.apps.restclienttemplate.databinding.ItemTweetBinding;
 import com.codepath.apps.restclienttemplate.models.Tweet;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-public class TweetAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
+public class TweetAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements TextureView.SurfaceTextureListener {
     private final Context context;
     private final List tweets;
 
@@ -58,6 +67,26 @@ public class TweetAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         return tweets.size();
     }
 
+    @Override
+    public void onSurfaceTextureAvailable(@NonNull SurfaceTexture surfaceTexture, int i, int i1) {
+
+    }
+
+    @Override
+    public void onSurfaceTextureSizeChanged(@NonNull SurfaceTexture surfaceTexture, int i, int i1) {
+
+    }
+
+    @Override
+    public boolean onSurfaceTextureDestroyed(@NonNull SurfaceTexture surfaceTexture) {
+        return false;
+    }
+
+    @Override
+    public void onSurfaceTextureUpdated(@NonNull SurfaceTexture surfaceTexture) {
+
+    }
+
     public class TweetHolder extends RecyclerView.ViewHolder {
         public ItemTweetBinding itemRow;
 
@@ -72,17 +101,21 @@ public class TweetAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
             itemRow.tvUsername.setText(String.format("@%s", tweet.user.username));
             itemRow.tvCreatedAt.setText(tweet.getFormattedCreatedAt());
             itemRow.tvBody.setText(tweet.body);
-            ImageView media = itemRow.imgEmbedded;
-            media.setVisibility(ImageView.GONE);
 
-            if (!tweet.medias.isEmpty()) {
-                List<String> ms = tweet.medias;
-                Log.i("ADAPTER", ms.toString());
-
-                //if (ms.get(0).type == "photo") {
-                  //  media.setVisibility(ImageView.VISIBLE);
-                    //Glide.with(context).load(tweet.medias.get(0).url).transform(new FitCenter(), new RoundedCorners(12)).into(media);
-                //}
+            List<String> ms = tweet.medias;
+            if (!ms.isEmpty()) {
+                List<String> m = Arrays.asList(ms.get(0).split(" - "));
+                if (m.get(1).equals("photo")) {
+                    ImageView media = itemRow.imgEmb;
+                    media.setVisibility(ImageView.VISIBLE);
+                    Glide.with(context).load(m.get(0)).transform(new FitCenter(), new RoundedCorners(12)).into(media);
+                }else if(m.get(1).equals("video")) {
+                    Log.i("ADAPTER", tweet.body);
+                    MyVideo media = itemRow.videoEmb;
+                    Uri uri = Uri.parse(m.get(0));
+                    media.setVisibility(VideoView.VISIBLE);
+                    media.setUrl(uri);
+                }
             }
             itemRow.executePendingBindings();
         }

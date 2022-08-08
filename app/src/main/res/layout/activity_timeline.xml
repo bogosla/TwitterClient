@@ -2,25 +2,34 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
         android:layout_height="match_parent"
+        android:fitsSystemWindows="true"
         tools:context=".TimelineActivity">
+
+        <androidx.appcompat.widget.Toolbar
+            style="@style/Toolbar"
+            android:id="@+id/toolbar"
+            app:titleTextColor="@color/white"
+            android:background="@color/red"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/refreshContainer"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:layout_below="@+id/toolbar">
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvTweets"
                 android:layout_width="0dp"
-                android:layout_height="0dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                android:layout_height="0dp" />
 
 
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </RelativeLayout>
 </layout>

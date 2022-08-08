@@ -7,6 +7,7 @@
         android:layout_marginHorizontal="7dp"
         android:layout_marginTop="16dp"
         android:orientation="horizontal">
+
         <ImageView
             android:id="@+id/imgProfile"
             android:layout_width="44dp"
@@ -50,20 +51,36 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/tvName"/>
-            <ImageView
-                android:id="@+id/imgEmbedded"
-                android:layout_marginTop="3dp"
+            <LinearLayout
                 android:layout_below="@id/tvBody"
-                android:layout_width="match_parent"
-                android:scaleType="center"
-                tools:src="@tools:sample/avatars"
-                android:layout_height="170dp"
-                android:visibility="gone"
-                />
+                android:layout_marginTop="7dp"
+                android:id="@+id/mediaEmbedded"
+                android:layout_width="0dp"
+                android:orientation="vertical"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentRight="true" android:layout_height="wrap_content">
+
+                <ImageView
+                    android:id="@+id/imgEmb"
+                    android:layout_width="match_parent"
+                    android:scaleType="center"
+                    tools:src="@tools:sample/avatars"
+                    android:layout_height="140dp"
+                    android:visibility="gone"
+                    />
+
+                <com.codepath.apps.restclienttemplate.MyVideo
+                    android:id="@+id/videoEmb"
+                    android:layout_width="match_parent"
+                    android:layout_height="140dp"
+                    android:visibility="gone"
+                    />
+            </LinearLayout>
+
             <LinearLayout
                 android:id="@+id/lnActions"
-                android:layout_marginTop="3dp"
-                android:layout_below="@+id/imgEmbedded"
+                android:layout_marginTop="7dp"
+                android:layout_below="@+id/mediaEmbedded"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:layout_width="match_parent"

@@ -1,6 +1,7 @@
 package com.codepath.apps.restclienttemplate;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -10,7 +11,9 @@ import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
 import android.widget.Toast;
+
 
 import com.codepath.apps.restclienttemplate.databinding.ActivityTimelineBinding;
 import com.codepath.apps.restclienttemplate.models.Tweet;
@@ -39,6 +42,10 @@ public class TimelineActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         biding = DataBindingUtil.setContentView(this, R.layout.activity_timeline);
+        Toolbar toolbar = biding.toolbar;
+        setSupportActionBar(toolbar);
+
+
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
 
         rvTweets = biding.rvTweets;
@@ -67,7 +74,12 @@ public class TimelineActivity extends AppCompatActivity {
 
                     @Override
                     public void onFailure(int statusCode, Headers headers, String response, Throwable throwable) {
-                        Toast.makeText(TimelineActivity.this, "Maybe no internet connection!!", Toast.LENGTH_LONG).show();
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(TimelineActivity.this, "Maybe no internet connection!!", Toast.LENGTH_LONG).show();
+                            }
+                        });
                     }
                 });
             }
@@ -87,6 +99,12 @@ public class TimelineActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+         getMenuInflater().inflate( R.menu.home, menu);
+        return true;
+    }
+
     public void populateTimeLine(int page) {
         client.getHomeTimeLine(page, new JsonHttpResponseHandler() {
             @Override
@@ -101,7 +119,7 @@ public class TimelineActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(int statusCode, Headers headers, String response, Throwable throwable) {
-                // Toast.makeText(TimelineActivity.this, "Maybe no internet connection!!", Toast.LENGTH_LONG).show();
+                Log.e(TAG, "Failed!!");
                 getTweetsFromDb();
             }
         });
