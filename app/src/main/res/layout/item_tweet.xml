@@ -69,12 +69,6 @@
                     android:visibility="gone"
                     />
 
-                <com.codepath.apps.restclienttemplate.MyVideo
-                    android:id="@+id/videoEmb"
-                    android:layout_width="match_parent"
-                    android:layout_height="140dp"
-                    android:visibility="gone"
-                    />
             </LinearLayout>
 
             <LinearLayout

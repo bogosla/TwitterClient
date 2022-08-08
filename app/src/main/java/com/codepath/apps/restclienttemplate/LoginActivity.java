@@ -37,7 +37,7 @@ public class LoginActivity extends OAuthLoginActionBarActivity<RestClient> {
 	// i.e Display an error dialog or toast
 	@Override
 	public void onLoginFailure(Exception e) {
-		Toast.makeText(LoginActivity.this, "Login failed!!!", Toast.LENGTH_LONG).show();
+		// Toast.makeText(LoginActivity.this, "Login failed!!!", Toast.LENGTH_LONG).show();
 	}
 
 	// Click handler method for the button used to start OAuth flow

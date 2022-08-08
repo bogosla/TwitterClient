@@ -9,9 +9,12 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.annotation.SuppressLint;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 
@@ -47,7 +50,6 @@ public class TimelineActivity extends AppCompatActivity {
 
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
-
         rvTweets = biding.rvTweets;
         refreshContainer = biding.refreshContainer;
 
@@ -74,21 +76,16 @@ public class TimelineActivity extends AppCompatActivity {
 
                     @Override
                     public void onFailure(int statusCode, Headers headers, String response, Throwable throwable) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(TimelineActivity.this, "Maybe no internet connection!!", Toast.LENGTH_LONG).show();
-                            }
-                        });
                     }
                 });
             }
         };
 
         // Add decoration to custom each item
-        rvTweets.addItemDecoration(new ItemDecorationTweet());
+        // rvTweets.addItemDecoration(new ItemDecorationTweet());
         rvTweets.setLayoutManager(linearLayoutManager); // LayoutManager
         rvTweets.setAdapter(adapter); // Set adapter
+        // rvTweets.setHasFixedSize(true);
 
         rvTweets.addOnScrollListener(scrollListener);
 
@@ -119,7 +116,7 @@ public class TimelineActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(int statusCode, Headers headers, String response, Throwable throwable) {
-                Log.e(TAG, "Failed!!");
+                Log.e(TAG, response, throwable);
                 getTweetsFromDb();
             }
         });
@@ -154,7 +151,6 @@ public class TimelineActivity extends AppCompatActivity {
 
             @Override
             protected void onPostExecute(List<Tweet> ts) {
-                Log.i(TAG, "FROM DB " + ts.toString());
                 adapter.clear();
                 adapter.addAll(ts);
                 Toast.makeText(TimelineActivity.this, "Retrieve tweets from DB !!", Toast.LENGTH_LONG).show();
