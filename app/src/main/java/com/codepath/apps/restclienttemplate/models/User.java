@@ -14,7 +14,7 @@ public class User {
     public String username;
 
     @ColumnInfo
-    public Long userId;
+    public long userId;
 
     public String profileUrl;
 

@@ -17,7 +17,7 @@ public interface TweetDAO {
     void deleteAll();
 
 
-    @Query("SELECT * FROM Tweet")
+    @Query("SELECT * FROM Tweet ORDER BY id desc")
     List<Tweet> getTweets();
 
     // Replace strategy is needed to ensure an update on the table row.  Otherwise the insertion will

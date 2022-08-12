@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Embedded;
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 import androidx.room.TypeConverters;
 
@@ -21,7 +22,7 @@ public class Tweet {
 
     @PrimaryKey
     @ColumnInfo
-    public Long id;
+    public long id;
 
     @ColumnInfo
     public String createdAt;
@@ -36,7 +37,11 @@ public class Tweet {
     @ColumnInfo
     public List<String> medias = new ArrayList<>();
 
-    public Tweet(User user, String body, String createdAt) {
+    public Tweet() {}
+
+    @Ignore
+    public Tweet(long id, User user, String body, String createdAt) {
+        this.id = id;
         this.user = user;
         this.body = body;
         this.createdAt = createdAt;
@@ -48,6 +53,7 @@ public class Tweet {
 
     public static Tweet fromJson(JSONObject json) throws JSONException {
         Tweet tweet = new Tweet(
+                json.getLong("id"),
                 User.fromJson(json.getJSONObject("user")),
                 json.getString("text"),
                 json.getString("created_at")
