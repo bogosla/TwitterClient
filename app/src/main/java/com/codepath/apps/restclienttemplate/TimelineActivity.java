@@ -13,7 +13,6 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.annotation.SuppressLint;
 
-import android.content.Context;
 import android.os.AsyncTask;
 
 import android.os.Bundle;
@@ -47,12 +46,35 @@ public class TimelineActivity extends AppCompatActivity {
     SwipeRefreshLayout refreshContainer;
 
 
+    List<String> toDown = new ArrayList<>();
+    Downloader downloader;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         biding = DataBindingUtil.setContentView(this, R.layout.activity_timeline);
         Toolbar toolbar = biding.toolbar;
         setSupportActionBar(toolbar);
+
+        downloader = new Downloader(TimelineActivity.this);
+        downloader.setVideoDownloadListener(new Downloader.VideoDownloadListener() {
+            @Override
+            public void onVideoDownloaded(String url, String path) {
+                Log.i(TAG, url + " Downloaded at " + path);
+            }
+
+            @Override
+            public void onVideoFailed(String url) {
+                Log.i(TAG, url + " Failed !!");
+
+            }
+        });
+
+        toDown.add("https://i.imgur.com/OEUKLCm.png");
+        toDown.add("https://i.imgur.com/cZEhJkg.gif");
+        toDown.add("https://i.imgur.com/P5BAPDb.gif");
+
+        biding.fabCompose.setOnClickListener(view -> showCompose());
         
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         
@@ -103,6 +125,16 @@ public class TimelineActivity extends AppCompatActivity {
 
         populateTimeLine(); // fetch data
 
+        FileCache f = new FileCache(TimelineActivity.this);
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        // downloader.clear();
+        // downloader.start(toDown);
+
     }
 
     @Override
@@ -133,6 +165,7 @@ public class TimelineActivity extends AppCompatActivity {
                 try {
                     adapter.clear();
                     List<Tweet> tweetList = Tweet.fromJsonArray(json.jsonArray);
+                    Log.i(TAG, tweetList.toString());
                     adapter.addAll(tweetList);
                     saveTweetsToDB(tweetList.toArray(new Tweet[0])); // Save to DB
                 } catch (JSONException e) { e.printStackTrace(); }
@@ -185,9 +218,16 @@ public class TimelineActivity extends AppCompatActivity {
         FragmentTransaction fManager = getSupportFragmentManager().beginTransaction();
         fManager.addToBackStack(null);
         ComposeFragment compose = ComposeFragment.newInstance("New Tweet");
+        compose.setCancelable(false);
 
         compose.setStyle(DialogFragment.STYLE_NORMAL, R.style.Dialog_FullScreen);
         compose.show(fManager, "compose_fragment");
+    }
+    public void showAlert(String d) {
+        FragmentManager fm = getSupportFragmentManager();
+        AlertFragment alert = AlertFragment.newInstance("Persistence");
+        alert.draft = d;
+        alert.show(fm, "alert_fragment");
     }
 
     public void postTweet(String text) {
