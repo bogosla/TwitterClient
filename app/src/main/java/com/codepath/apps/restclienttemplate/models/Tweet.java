@@ -1,5 +1,7 @@
 package com.codepath.apps.restclienttemplate.models;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Embedded;
@@ -33,6 +35,18 @@ public class Tweet {
     @Embedded
     public User user;
 
+    @Ignore
+    public boolean retweeted;
+
+    @Ignore
+    public int retweetCount;
+
+    @Ignore
+    public boolean favorited;
+
+    @Ignore
+    public int favoriteCount;
+
     @TypeConverters(Converter.class)
     @ColumnInfo
     public List<String> medias = new ArrayList<>();
@@ -60,12 +74,21 @@ public class Tweet {
         );
         // Takes media for this tweet
         try {
+            tweet.retweeted = json.getBoolean("retweeted");
+            tweet.retweetCount = json.getInt("retweet_count");
+            tweet.favorited = json.getBoolean("favorited");
+            tweet.retweetCount = json.getInt("favorite_count");
+
             JSONArray entities_media = json.getJSONObject("extended_entities").getJSONArray("media");
             for (int i = 0; i < entities_media.length(); i++) {
                 String m = "";
                 m += entities_media.getJSONObject(i).getString("media_url_https");
                 m += " - ";
                 m += entities_media.getJSONObject(0).getString("type");
+                try {
+                    String u = entities_media.getJSONObject(i).getJSONObject("video_info").getJSONArray("variants").getJSONObject(0).getString("url");
+                    m += " - " + u;
+                }catch (Exception e){}
                 tweet.medias.add(m);
             }
 
@@ -81,8 +104,15 @@ public class Tweet {
         return tweets;
     }
 
-    @NonNull
     @Override
-    public String toString() { return String.format("Tweet(%s){createdAt: %s}", id, createdAt); }
-
+    public String toString() {
+        return "Tweet{" +
+                "id=" + id +
+                ", retweeted=" + retweeted +
+                ", retweetCount=" + retweetCount +
+                ", favorited=" + favorited +
+                ", favoriteCount=" + favoriteCount +
+                ", medias=" + medias.toString() +
+                '}';
+    }
 }
