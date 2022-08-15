@@ -32,7 +32,7 @@
 
         <ImageView
             android:id="@+id/imgProfile2"
-            android:src="@drawable/favorite_24"
+            android:src="@drawable/logo"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_alignParentRight="true"
@@ -60,6 +60,7 @@
             android:id="@+id/imgSend"
             android:layout_marginRight="7dp"
             android:layout_width="72dp"
+            android:background="@drawable/img_send"
             android:layout_height="68dp"/>
         <LinearLayout
             android:orientation="horizontal"
@@ -70,7 +71,7 @@
             <TextView
                 android:id="@+id/tvCounter"
                 android:text="280"
-                android:textColor="#33FF33"
+                android:textColor="#4CAF50"
                 android:layout_marginRight="7dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>

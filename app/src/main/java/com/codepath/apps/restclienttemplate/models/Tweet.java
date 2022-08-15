@@ -35,16 +35,16 @@ public class Tweet {
     @Embedded
     public User user;
 
-    @Ignore
+    @ColumnInfo
     public boolean retweeted;
 
-    @Ignore
+    @ColumnInfo
     public int retweetCount;
 
-    @Ignore
+    @ColumnInfo
     public boolean favorited;
 
-    @Ignore
+    @ColumnInfo
     public int favoriteCount;
 
     @TypeConverters(Converter.class)

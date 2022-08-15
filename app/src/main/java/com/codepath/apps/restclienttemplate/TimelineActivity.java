@@ -1,6 +1,7 @@
 package com.codepath.apps.restclienttemplate;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.databinding.DataBindingUtil;
@@ -13,6 +14,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.annotation.SuppressLint;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 
 import android.os.Bundle;
@@ -46,9 +48,6 @@ public class TimelineActivity extends AppCompatActivity {
     SwipeRefreshLayout refreshContainer;
 
 
-    List<String> toDown = new ArrayList<>();
-    Downloader downloader;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,25 +55,15 @@ public class TimelineActivity extends AppCompatActivity {
         Toolbar toolbar = biding.toolbar;
         setSupportActionBar(toolbar);
 
-        downloader = new Downloader(TimelineActivity.this);
-        downloader.setVideoDownloadListener(new Downloader.VideoDownloadListener() {
-            @Override
-            public void onVideoDownloaded(String url, String path) {
-                Log.i(TAG, url + " Downloaded at " + path);
-            }
 
-            @Override
-            public void onVideoFailed(String url) {
-                Log.i(TAG, url + " Failed !!");
+        Intent ii = getIntent();
 
-            }
-        });
+        if (ii != null && (ii.getStringExtra("rTitle") != null && !ii.getStringExtra("rTitle").trim().isEmpty()) &&
+        (ii.getStringExtra("rUrl") != null && !ii.getStringExtra("rUrl").trim().isEmpty()) ) {
+            showCompose(ii.getStringExtra("rTitle") + "/n" + ii.getStringExtra("rUrl"), false, null);
+        }
 
-        toDown.add("https://i.imgur.com/OEUKLCm.png");
-        toDown.add("https://i.imgur.com/cZEhJkg.gif");
-        toDown.add("https://i.imgur.com/P5BAPDb.gif");
-
-        biding.fabCompose.setOnClickListener(view -> showCompose());
+        biding.fabCompose.setOnClickListener(view -> showCompose(null, false, null));
         
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         
@@ -82,6 +71,14 @@ public class TimelineActivity extends AppCompatActivity {
         refreshContainer = biding.refreshContainer;
 
         adapter = new TweetAdapter(this, tweets);
+
+
+        adapter.setActionListener(new TweetAdapter.ActionListener() {
+            @Override
+            public void onReply(Tweet t) {
+               showCompose("@"+ t.user.username, true, String.valueOf(t.id));
+            }
+        });
 
         // Refresh listener
         refreshContainer.setOnRefreshListener(() -> {
@@ -96,7 +93,7 @@ public class TimelineActivity extends AppCompatActivity {
                 client.nextPageOfTweets(tweets.get(tweets.size() - 1).id, new JsonHttpResponseHandler() {
                     @Override
                     public void onSuccess(int statusCode, Headers headers, JSON json) {
-                        List<Tweet> tweetList = null;
+                        List<Tweet> tweetList;
                         try {
                             tweetList = Tweet.fromJsonArray(json.jsonArray);
                             adapter.addAll(tweetList);
@@ -125,16 +122,11 @@ public class TimelineActivity extends AppCompatActivity {
 
         populateTimeLine(); // fetch data
 
-        FileCache f = new FileCache(TimelineActivity.this);
-
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        // downloader.clear();
-        // downloader.start(toDown);
-
     }
 
     @Override
@@ -143,15 +135,22 @@ public class TimelineActivity extends AppCompatActivity {
         return true;
     }
 
+    @SuppressLint("NonConstantResourceId")
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
             case R.id.logout:
                 // clear session current user
+                client.clearAccessToken();
+                // Goto LoginActivity
+                // Intent l = new Intent(TimelineActivity.this, LoginActivity.class);
+                // startActivity(l);
+                // Finish it
+                // finish();
                 return true;
             case R.id.compose:
-                showCompose();
-                // Start compose
+                // Start composeFragment
+                showCompose(null, false, null);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -178,7 +177,7 @@ public class TimelineActivity extends AppCompatActivity {
     }
 
     public void saveTweetsToDB(Tweet... tweetsToSave) {
-        @SuppressLint("StaticFieldLeak") AsyncTask<Tweet, Void, Void> task = new AsyncTask<Tweet, Void, Void>() {
+        @SuppressWarnings("deprecation") @SuppressLint("StaticFieldLeak") AsyncTask<Tweet, Void, Void> task = new AsyncTask<Tweet, Void, Void>() {
 
             @Override
             protected Void doInBackground(Tweet... lists) {
@@ -196,7 +195,7 @@ public class TimelineActivity extends AppCompatActivity {
     }
 
     public void getTweetsFromDb() {
-        @SuppressLint("StaticFieldLeak") AsyncTask<Void, Void, List<Tweet>> task = new AsyncTask<Void, Void, List<Tweet>>() {
+        @SuppressWarnings("deprecation") @SuppressLint("StaticFieldLeak") AsyncTask<Void, Void, List<Tweet>> task = new AsyncTask<Void, Void, List<Tweet>>() {
 
             @Override
             protected List<Tweet> doInBackground(Void... voids) {
@@ -214,15 +213,22 @@ public class TimelineActivity extends AppCompatActivity {
         task.execute();
     }
 
-    private void showCompose() {
+    private void showCompose(@Nullable String prefill, boolean reply, @Nullable String id) {
+
         FragmentTransaction fManager = getSupportFragmentManager().beginTransaction();
         fManager.addToBackStack(null);
         ComposeFragment compose = ComposeFragment.newInstance("New Tweet");
+        if (prefill != null) compose.prefill = prefill;
+        if (reply) {
+            compose.reply = true;
+            compose.pId = id;
+        }
         compose.setCancelable(false);
 
         compose.setStyle(DialogFragment.STYLE_NORMAL, R.style.Dialog_FullScreen);
         compose.show(fManager, "compose_fragment");
     }
+
     public void showAlert(String d) {
         FragmentManager fm = getSupportFragmentManager();
         AlertFragment alert = AlertFragment.newInstance("Persistence");
@@ -250,4 +256,23 @@ public class TimelineActivity extends AppCompatActivity {
         });
     }
 
+    public void postReply(String id, String text) {
+        client.replyTweet(Long.valueOf(id), text, new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Headers headers, JSON json) {
+                try {
+                    tweets.add(0, Tweet.fromJson(json.jsonObject));
+                    adapter.notifyItemInserted(0);
+                    rvTweets.scrollToPosition(0);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onFailure(int statusCode, Headers headers, String response, Throwable throwable) {
+
+            }
+        });
+    }
 }

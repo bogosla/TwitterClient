@@ -25,6 +25,8 @@ import androidx.fragment.app.DialogFragment;
 public class ComposeFragment extends DialogFragment {
     private final static String TAG = "ComposeFragment";
     private final static int GET_IMAGE = 7;
+    private final static int maxCount = 280;
+
     TextView name;
     TextView username;
     ImageView profile;
@@ -32,11 +34,11 @@ public class ComposeFragment extends DialogFragment {
     ImageView close;
     Button send;
     ImageView imgSend;
-
-    final int maxCount = 280;
-
     TextView counter;
 
+    String prefill;
+    boolean reply = false;
+    String pId;
 
     public ComposeFragment() {}
 
@@ -73,21 +75,30 @@ public class ComposeFragment extends DialogFragment {
 
         username.setText("Bogosla");
         name.setText("James Destine");
+
+        if (prefill != null) {
+            content.setText(prefill);
+            counter.setText(String.valueOf((maxCount - prefill.length())));
+        }
+        // If got data display in body content
         String already = Utils.readPref(getContext(), "draft", "..");
         if (already != null && !already.equals("..")) {
             content.setText(already);
             counter.setText(String.valueOf((maxCount - already.length())));
         }
 
-
+        // Set image
         imgSend.setOnClickListener(view13 -> getImage());
 
+        // If body content if not empty ask to save msg
         close.setOnClickListener(view12 -> {
             if(content != null && !content.getText().toString().trim().isEmpty())
                 ((TimelineActivity)getActivity()).showAlert(content.getText().toString().trim());
             dismiss();
         });
 
+
+        // Counter character
         content.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
@@ -103,16 +114,20 @@ public class ComposeFragment extends DialogFragment {
                 counter.setText(String.valueOf((c)));
             }
         });
+
         send.setOnClickListener(view1 -> {
+            // If empty do not post, else post and close compose
            if(content == null || content.getText().toString().trim().isEmpty())
                return;
-           ((TimelineActivity)getActivity()).postTweet(content.getText().toString());
+           if (reply == true)
+               ((TimelineActivity)getActivity()).postReply(pId, content.getText().toString());
+           else
+               ((TimelineActivity)getActivity()).postTweet(content.getText().toString());
            dismiss();
         });
 
         String title = getArguments().getString("title");
         getDialog().setTitle(title);
-
         getDialog().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
     }
 
@@ -127,6 +142,7 @@ public class ComposeFragment extends DialogFragment {
         super.onResume();
     }
 
+    // Take image
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         Log.i(TAG, String.valueOf(requestCode));
@@ -136,6 +152,7 @@ public class ComposeFragment extends DialogFragment {
         }
     }
 
+    // Fetch image
     private void getImage() {
         Intent gal = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI);
         startActivityForResult(gal, GET_IMAGE);

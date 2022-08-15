@@ -1,7 +1,6 @@
 package com.codepath.apps.restclienttemplate;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.codepath.asynchttpclient.RequestParams;
 import com.codepath.asynchttpclient.callback.JsonHttpResponseHandler;
@@ -33,11 +32,42 @@ public class RestClient extends OAuthBaseClient {
 
 	}
 	
-	public void getHomeTimeLine(int page, JsonHttpResponseHandler handler) {
+	public void getHomeTimeLine(JsonHttpResponseHandler handler) {
 		String apiUrl = getApiUrl("statuses/home_timeline.json");
 		RequestParams params = new RequestParams();
-		params.put("count", "20");
-		params.put("page", String.valueOf(page));
+		params.put("count", 25);
+		params.put("since_id", 1);
 		client.get(apiUrl, params, handler);
+	}
+
+	public void nextPageOfTweets(long maxID, JsonHttpResponseHandler handler) {
+		String apiUrl = getApiUrl("statuses/home_timeline.json");
+		RequestParams params = new RequestParams();
+		params.put("count", 25);
+		params.put("max_id", maxID);
+		client.get(apiUrl, params, handler);
+	}
+
+	public void createTweet(String text, JsonHttpResponseHandler handler) {
+		String apiUrl = getApiUrl("statuses/update.json");
+		RequestParams params = new RequestParams();
+		params.put("status", text);
+		client.post(apiUrl, params, "", handler);
+	}
+
+	public void replyTweet(long id, String text, JsonHttpResponseHandler handler) {
+		String apiUrl = getApiUrl("statuses/update.json");
+		RequestParams params = new RequestParams();
+		params.put("status", text);
+		params.put("in_reply_to_status_id", id);
+		client.post(apiUrl, params, "", handler);
+	}
+
+	public void postMediaPhoto(long raw, JsonHttpResponseHandler handler) {
+		String apiUrl = "https://upload.twitter.com/1.1/media/upload.json";
+		RequestParams params = new RequestParams();
+		params.put("media", raw);
+		params.put("media_category", "tweet_image");
+		client.post(apiUrl, params, "", handler);
 	}
 }
