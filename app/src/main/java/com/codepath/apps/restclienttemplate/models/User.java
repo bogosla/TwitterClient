@@ -1,5 +1,7 @@
 package com.codepath.apps.restclienttemplate.models;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 
@@ -14,7 +16,7 @@ public class User {
     public String username;
 
     @ColumnInfo
-    public Long userId;
+    public long userId;
 
     public String profileUrl;
 

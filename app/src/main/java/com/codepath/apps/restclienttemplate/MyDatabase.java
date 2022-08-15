@@ -8,7 +8,7 @@ import com.codepath.apps.restclienttemplate.models.Converter;
 import com.codepath.apps.restclienttemplate.models.Tweet;
 import com.codepath.apps.restclienttemplate.models.TweetDAO;
 
-@Database(entities={Tweet.class}, version=2)
+@Database(entities={Tweet.class}, version=5)
 @TypeConverters(Converter.class)
 public abstract class MyDatabase extends RoomDatabase {
     public abstract TweetDAO getTweetDAO();

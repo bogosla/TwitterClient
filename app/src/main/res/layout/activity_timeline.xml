@@ -2,34 +2,53 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
-
-    <RelativeLayout
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fitsSystemWindows="true"
-        tools:context=".TimelineActivity">
+        android:layout_height="match_parent">
 
-        <androidx.appcompat.widget.Toolbar
-            style="@style/Toolbar"
-            android:id="@+id/toolbar"
-            app:titleTextColor="@color/white"
-            android:background="@color/red"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+        <com.google.android.material.appbar.AppBarLayout
+                app:popupTheme="@style/ThemeOverlay.AppCompat.ActionBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <androidx.appcompat.widget.Toolbar
+                    style="@style/Toolbar"
+                    android:id="@+id/toolbar"
+                    app:titleTextColor="@color/white"
+                    app:layout_scrollFlags="scroll|enterAlways"
+                    android:background="@color/red"
+                    android:layout_width="match_parent"
+                    android:layout_height="?attr/actionBarSize" />
+
+
+            </com.google.android.material.appbar.AppBarLayout>
+
 
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-            android:id="@+id/refreshContainer"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_below="@+id/toolbar">
+                    android:id="@+id/refreshContainer"
+                    android:fitsSystemWindows="true"
+                    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvTweets"
-                android:layout_width="0dp"
-                android:layout_height="0dp" />
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvTweets"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent" />
+
+                </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabCompose"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|right"
+            android:layout_margin="16dp"
+            app:layout_anchor="@id/rvTweets"
+            app:layout_anchorGravity="bottom|right|end"
+            android:backgroundTint="@color/red"
+            app:srcCompat="@android:drawable/ic_input_add" />
 
 
-        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
-    </RelativeLayout>
+
 </layout>

@@ -2,19 +2,31 @@ package com.codepath.apps.restclienttemplate;
 
 import android.content.Intent;
 import android.os.Bundle;
+
 import android.view.Menu;
 import android.view.View;
-import android.widget.Toast;
 
 import com.codepath.oauth.OAuthLoginActionBarActivity;
-
 public class LoginActivity extends OAuthLoginActionBarActivity<RestClient> {
+
+	String rTitle, rUrl;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_login);
 		setSupportActionBar(findViewById(R.id.toolbar0));
+
+		Intent i = getIntent();
+		String action = i.getAction();
+		String type = i.getType();
+
+		if (Intent.ACTION_SEND.equals(action) && type != null) {
+			if ("text/plain".equals(type)) {
+				rTitle = i.getStringExtra(Intent.EXTRA_SUBJECT);
+				rUrl = i.getStringExtra(Intent.EXTRA_TEXT);
+			}
+		}
 	}
 
 
@@ -30,7 +42,12 @@ public class LoginActivity extends OAuthLoginActionBarActivity<RestClient> {
 	@Override
 	public void onLoginSuccess() {
 		 Intent i = new Intent(this, TimelineActivity.class);
+		 if (rTitle != null && rUrl != null) {
+			 i.putExtra("rTitle", rTitle);
+			 i.putExtra("rUrl", rUrl);
+		 }
 		 startActivity(i);
+		 finish();
 	}
 
 	// OAuth authentication flow failed, handle the error

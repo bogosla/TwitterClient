@@ -1,20 +1,26 @@
 package com.codepath.apps.restclienttemplate;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.databinding.DataBindingUtil;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.annotation.SuppressLint;
+
+import android.content.Intent;
 import android.os.AsyncTask;
-import android.os.Build;
+
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
-import android.view.Window;
-import android.view.WindowManager;
+import android.view.MenuItem;
 import android.widget.Toast;
 
 
@@ -34,11 +40,12 @@ public class TimelineActivity extends AppCompatActivity {
     public static final String TAG = "TimelineActivity";
     ActivityTimelineBinding biding;
     TweetAdapter adapter;
+    RecyclerView rvTweets;
+
     List<Tweet> tweets = new ArrayList<>();
     RestClient client;
-    RecyclerView rvTweets;
+    TweetDAO tweetDAO;
     SwipeRefreshLayout refreshContainer;
-    int page = 1;
 
 
     @Override
@@ -49,15 +56,33 @@ public class TimelineActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
 
+        Intent ii = getIntent();
+
+        if (ii != null && (ii.getStringExtra("rTitle") != null && !ii.getStringExtra("rTitle").trim().isEmpty()) &&
+        (ii.getStringExtra("rUrl") != null && !ii.getStringExtra("rUrl").trim().isEmpty()) ) {
+            showCompose(ii.getStringExtra("rTitle") + "/n" + ii.getStringExtra("rUrl"), false, null);
+        }
+
+        biding.fabCompose.setOnClickListener(view -> showCompose(null, false, null));
+        
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+        
         rvTweets = biding.rvTweets;
         refreshContainer = biding.refreshContainer;
 
         adapter = new TweetAdapter(this, tweets);
 
+
+        adapter.setActionListener(new TweetAdapter.ActionListener() {
+            @Override
+            public void onReply(Tweet t) {
+               showCompose("@"+ t.user.username, true, String.valueOf(t.id));
+            }
+        });
+
         // Refresh listener
         refreshContainer.setOnRefreshListener(() -> {
-            populateTimeLine(1);
+            populateTimeLine();
             refreshContainer.setRefreshing(false);
         });
 
@@ -65,35 +90,43 @@ public class TimelineActivity extends AppCompatActivity {
         EndlessRecyclerViewScrollListener scrollListener = new EndlessRecyclerViewScrollListener(linearLayoutManager) {
             @Override
             public void onLoadMore(int p, int totalItemsCount, RecyclerView view) {
-                int new_page = page ++;
-                client.getHomeTimeLine(new_page, new JsonHttpResponseHandler() {
+                client.nextPageOfTweets(tweets.get(tweets.size() - 1).id, new JsonHttpResponseHandler() {
                     @Override
                     public void onSuccess(int statusCode, Headers headers, JSON json) {
+                        List<Tweet> tweetList;
                         try {
-                            adapter.addAll(Tweet.fromJsonArray(json.jsonArray));
-                        } catch (JSONException e) { e.printStackTrace(); }
+                            tweetList = Tweet.fromJsonArray(json.jsonArray);
+                            adapter.addAll(tweetList);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
                     }
 
                     @Override
                     public void onFailure(int statusCode, Headers headers, String response, Throwable throwable) {
+
                     }
                 });
+
             }
         };
 
-        // Add decoration to custom each item
-        // rvTweets.addItemDecoration(new ItemDecorationTweet());
         rvTweets.setLayoutManager(linearLayoutManager); // LayoutManager
         rvTweets.setAdapter(adapter); // Set adapter
-        // rvTweets.setHasFixedSize(true);
+        rvTweets.setHasFixedSize(true);
 
         rvTweets.addOnScrollListener(scrollListener);
 
+        client = RestApplication.getRestClient(this); // Client
+        tweetDAO = ((RestApplication) getApplicationContext()).getMyDatabase().getTweetDAO(); // DAO
 
-        client = RestApplication.getRestClient(this);
+        populateTimeLine(); // fetch data
 
-        populateTimeLine(1);
+    }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
     }
 
     @Override
@@ -102,33 +135,54 @@ public class TimelineActivity extends AppCompatActivity {
         return true;
     }
 
-    public void populateTimeLine(int page) {
-        client.getHomeTimeLine(page, new JsonHttpResponseHandler() {
+    @SuppressLint("NonConstantResourceId")
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.logout:
+                // clear session current user
+                client.clearAccessToken();
+                // Goto LoginActivity
+                // Intent l = new Intent(TimelineActivity.this, LoginActivity.class);
+                // startActivity(l);
+                // Finish it
+                // finish();
+                return true;
+            case R.id.compose:
+                // Start composeFragment
+                showCompose(null, false, null);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    public void populateTimeLine() {
+        client.getHomeTimeLine(new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Headers headers, JSON json) {
                 try {
                     adapter.clear();
                     List<Tweet> tweetList = Tweet.fromJsonArray(json.jsonArray);
+                    Log.i(TAG, tweetList.toString());
                     adapter.addAll(tweetList);
-                    saveTweetsToDB(tweetList.toArray(new Tweet[0]));
+                    saveTweetsToDB(tweetList.toArray(new Tweet[0])); // Save to DB
                 } catch (JSONException e) { e.printStackTrace(); }
             }
-
+            
+            // Retrieve tweets saved in DB if failed!!
             @Override
-            public void onFailure(int statusCode, Headers headers, String response, Throwable throwable) {
-                Log.e(TAG, response, throwable);
-                getTweetsFromDb();
-            }
+            public void onFailure(int statusCode, Headers headers, String response, Throwable throwable) { getTweetsFromDb();}
         });
     }
 
     public void saveTweetsToDB(Tweet... tweetsToSave) {
-        @SuppressLint("StaticFieldLeak") AsyncTask<Tweet, Void, Void> task = new AsyncTask<Tweet, Void, Void>() {
+        @SuppressWarnings("deprecation") @SuppressLint("StaticFieldLeak") AsyncTask<Tweet, Void, Void> task = new AsyncTask<Tweet, Void, Void>() {
+
             @Override
-            protected Void doInBackground(Tweet... ts) {
-                TweetDAO tweetDAO = ((RestApplication) getApplicationContext()).getMyDatabase().getTweetDAO();
+            protected Void doInBackground(Tweet... lists) {
                 tweetDAO.deleteAll();
-                tweetDAO.insertTweet(ts);
+                tweetDAO.insertTweet(tweetsToSave);
                 return null;
             }
 
@@ -141,11 +195,11 @@ public class TimelineActivity extends AppCompatActivity {
     }
 
     public void getTweetsFromDb() {
-        @SuppressLint("StaticFieldLeak") AsyncTask<Void, Void, List<Tweet>> task = new AsyncTask<Void, Void, List<Tweet>>() {
+        @SuppressWarnings("deprecation") @SuppressLint("StaticFieldLeak") AsyncTask<Void, Void, List<Tweet>> task = new AsyncTask<Void, Void, List<Tweet>>() {
 
             @Override
             protected List<Tweet> doInBackground(Void... voids) {
-                TweetDAO tweetDAO = ((RestApplication) getApplicationContext()).getMyDatabase().getTweetDAO();
+                tweetDAO = ((RestApplication) getApplicationContext()).getMyDatabase().getTweetDAO();
                 return tweetDAO.getTweets();
             }
 
@@ -159,4 +213,66 @@ public class TimelineActivity extends AppCompatActivity {
         task.execute();
     }
 
+    private void showCompose(@Nullable String prefill, boolean reply, @Nullable String id) {
+
+        FragmentTransaction fManager = getSupportFragmentManager().beginTransaction();
+        fManager.addToBackStack(null);
+        ComposeFragment compose = ComposeFragment.newInstance("New Tweet");
+        if (prefill != null) compose.prefill = prefill;
+        if (reply) {
+            compose.reply = true;
+            compose.pId = id;
+        }
+        compose.setCancelable(false);
+
+        compose.setStyle(DialogFragment.STYLE_NORMAL, R.style.Dialog_FullScreen);
+        compose.show(fManager, "compose_fragment");
+    }
+
+    public void showAlert(String d) {
+        FragmentManager fm = getSupportFragmentManager();
+        AlertFragment alert = AlertFragment.newInstance("Persistence");
+        alert.draft = d;
+        alert.show(fm, "alert_fragment");
+    }
+
+    public void postTweet(String text) {
+        client.createTweet(text, new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Headers headers, JSON json) {
+                try {
+                    tweets.add(0, Tweet.fromJson(json.jsonObject));
+                    adapter.notifyItemInserted(0);
+                    rvTweets.scrollToPosition(0);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onFailure(int statusCode, Headers headers, String response, Throwable throwable) {
+                runOnUiThread(() -> Toast.makeText(TimelineActivity.this, "Failed !!", Toast.LENGTH_LONG).show());
+            }
+        });
+    }
+
+    public void postReply(String id, String text) {
+        client.replyTweet(Long.valueOf(id), text, new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Headers headers, JSON json) {
+                try {
+                    tweets.add(0, Tweet.fromJson(json.jsonObject));
+                    adapter.notifyItemInserted(0);
+                    rvTweets.scrollToPosition(0);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onFailure(int statusCode, Headers headers, String response, Throwable throwable) {
+
+            }
+        });
+    }
 }
